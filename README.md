@@ -19,7 +19,7 @@ Here are some examples of what the language looks like.
 	
 ### Example 2: The Factorial Function
 
-	=:fact->1/::`*..1%1$@fact5
+	=:fact->1/.`*..1%1$.@fact5
 	
 Here's the same example with spaces and comments added. Admittedly, this is not the complete definition because it's missing the fact (by definition) that 0! = 1.
 
@@ -30,7 +30,7 @@ Here's the same example with spaces and comments added. Admittedly, this is not 
 	      ..1 %1   ## sequence of integers from 1 to whatever the argument is
 	    $          ## end function
 	
-	@fact 5        ## call factorial function assigned to 'fact' with 5 as the argument
+	. @fact 5      ## print the result of applying 'fact' to the number 5
 
 This program prints `120` to standard out.
 
@@ -93,7 +93,7 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `;`          |                | Nil                    | end or empty list  | `;`                    | List() (empty list using Scala syntax)
 `.`          | *e*            | ()                     | print *e* with \n  | `."this gets printed"` | () (with the side effect of printing "this gets printed\n")
 `.:`         | *e*            | ()                     | print *e*          | `.:"no new-line"`      | () (with the side effect of printing "no new-line")
-`@`          | *f*&nbsp;\<inputs> | \<output>              | invoke *f*         | <code>=:&nbsp;f&nbsp;->2&nbsp;+%1%2$&nbsp;@f&nbsp;1&nbsp;2</code> | 3
+`@`          | *f*&nbsp;\<inputs> | \<output>          | apply *f* to \<inputs> | <code>=:&nbsp;f&nbsp;->2&nbsp;+%1%2$&nbsp;@f&nbsp;1&nbsp;2</code> | 3
 `#`          | *s*            | length of *s*          | sequence length    | `#,1,2,3;`             | 3
 `->`         | *n*            | N/A                    | lambda function    | see `@` example        | see `@` example
 `%`          | *n*            | argument *n*           | get argument       | see `@` example        | see `@` example
