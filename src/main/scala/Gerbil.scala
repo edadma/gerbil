@@ -409,6 +409,21 @@ object Gerbil {
 			
 			Some( s.reduceLeft((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
 		} )
+	operator( Symbol("\\:"), (_, _, _) =>
+		env => {
+			val f = env.evalf
+			val z = env.evalo
+			val s = env.evals
+			
+			Some( s.foldRight(z)((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
+		} )
+	operator( Symbol("\\."), (_, _, _) =>
+		env => {
+			val f = env.evalf
+			val s = env.evals
+			
+			Some( s.reduceRight((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
+		} )
 	
 	def product( lower: Int, upper: Int ) = {
 		var res: AnyRef = new Integer( lower )

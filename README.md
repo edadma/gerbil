@@ -101,5 +101,8 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `%%`         | *n*            | outer argument *n*     | get outer argument |                        |
 `%%%`        | *n*            | 2nd outer argument *n* | get outer argument |                        |
 `$`          | N/A            | previous expression    | end lambda function| see `@` example        | see `@` example
-`` ` ``      | \<symbol>      | operator for \<symbol> | get operator       | ``/.`+,1,2,3;``        | 6
-`/.`         | *f*/2 *s*      | *s* reduced using *f*/2| left reduce        | see `` ` `` example    | see `` ` `` example
+`` ` ``      | \<symbol>      | operator for \<symbol> | get operator       | see `/.` example       | see `/.` example
+`/.`         | *f*/2 *s*      | *s* reduced using *f*/2| left reduce        | ``/.`-,1,2,3;``        | -4
+`/:`         | *f*/2 *s*      | *s* folded using *f*/2 | left fold          | ``/:`-3,1,2,3;``       | -3
+`\.`         | *f*/2 *s*      | *s* reduced using *f*/2| right reduce       | ``\.`-,1,2,3;``        | 2
+`\:`         | *f*/2 *s*      | *s* folded using *f*/2 | right fold         | ``\:`-3,1,2,3;``       | -1
