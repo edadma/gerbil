@@ -5,6 +5,7 @@ The Gerbil Programming Language
 
 *gerbil* is a small programming language that tends to result in very compact code. It is a Polish (prefix) notation language where the need for parentheses and brackets, as they are normally used has been eliminated. Parentheses and brackets do appear in the language but they are not used for grouping.
 
+*gerbil* offers exact arithmetic, including complex arithmetic. Whenever integers (either real or complex) are divided, they are treated as rationals and not floating point. Any arithmetic among rationals and integers (whether real or complex) is always exact. You can force a conversion to floating point by adding 0.0 to the number. Also, integers can be arbitrarily large in absolute value.
 
 Examples
 --------
@@ -48,7 +49,7 @@ Convention | Meaning
 *b*        | expression evaluating to a boolean
 *c*        | expression evaluating to a character string
 *f*[/arity]| expression evaluating to a function, whether defined or a built-in operator, possibly requiring a specific arity (number of parameters)
-*n*        | expression evaluating to a number
+*n*        | expression evaluating to a number, including complex numbers
 *s*        | expression evaluating to a (Scala) sequence
 *v*        | the name of a variable
 *e*        | any expression whatsoever
@@ -57,7 +58,7 @@ Convention | Meaning
 *e* :: *l* | a Scala list where *e* is the head and *l* is the tail
 Nil        | the Scala list terminator
 \<number\> | string of decimal digits denoting a number literal
-\<alpha\>  | string of alpha (letter) characters denoting a variable
+\<alpha\>  | string of alpha (letter) characters denoting a variable, except for non-symbol operators
 ...        | arbitrary string of characters, not including new-line
 N/A        | the column is not applicable to the symbol
            | a blank in the 'input' column just means no input, but is not the same as N/A because the symbol is considered to be a normal operator
@@ -73,11 +74,11 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 \<alpha\>    |                | the variable \<alpha\> | variable           | `a`                    | 5
 `"`...`"`    |                | the string ...         | string literal     | `"abc"`                | "abc"
 `##`...      | N/A            | N/A                    | comment            | `## does nothing`      | N/A
-`+`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> + *n*<sub>2</sub> | addition | `+ 3 4`              | 7
+`+`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> + *n*<sub>2</sub> | addition | `+ 3 a`              | 8
 `+`          | *c*<sub>1</sub>&nbsp;*c*<sub>2</sub> | *c*<sub>1</sub> joined to *c*<sub>2</sub> | concatenation | `+ "ab" "cd"`        | "abcd"
 `+:`         | *v*            | *v*                    | *v* = *v* + 1      | `+: a`                 | 5
 `+.`         | *v*            | *v* + 1                | *v* = *v* + 1      | `+. a`                 | 6
-`-`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> - *n*<sub>2</sub> | subtraction | `- 5 3`              | 2
+`-`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> - *n*<sub>2</sub> | subtraction | `- a 3`              | 2
 `-:`         | *v*            | *v*                    | *v* = *v* - 1      | `-: a`                 | 5
 `-.`         | *v*            | *v* - 1                | *v* = *v* - 1      | `-. a`                 | 4
 `~`          | *n*            | -*n*                   | unary negation     | `~a`                   | -5
@@ -106,3 +107,5 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `/:`         | *f*/2 *s*      | *s* folded using *f*/2 | left fold          | ``/:`-3,1,2,3;``       | -3
 `\.`         | *f*/2 *s*      | *s* reduced using *f*/2| right reduce       | ``\.`-,1,2,3;``        | 2
 `\:`         | *f*/2 *s*      | *s* folded using *f*/2 | right fold         | ``\:`-3,1,2,3;``       | -1
+`i`          | *n*            | *n**i*                 | imaginary number   | `i +1i1`               | -1+i
+`sqrt`       | *n*            | square root of *n*     | square root        | `sqrt i1`; `sqrt 4`    | 0.707106781+0.707106781i; 2 (as an integer)

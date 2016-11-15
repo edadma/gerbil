@@ -36,14 +36,19 @@ class Tests extends FreeSpec with PropertyChecks with Matchers {
 			""" ) shouldBe 120
 		Gerbil.run( """=:fact->1?=0%1 1:*%1@fact-%1 1?.$@fact5""" ) shouldBe 120
 		capture( "=:a1(.a^:=a5=:a+a1)" ) shouldBe "1\n2\n3\n4\n5"
-		Gerbil.run( "-.123" ) shouldBe -123
+		Gerbil.run( "~123" ) shouldBe -123
 		Gerbil.run( """=>->1+1%1$,1,2,3;""" ) shouldBe List( 2, 3, 4 )
 		Gerbil.run( "^4 /1 2" ) shouldBe 2.0
-		capture( """=:B->1/.`+=>->1/.`+=>->1*^-.1%1*/!\%%1%1!%1/^%1%%%1+1%%1$..0%1$..0%1$ .@B40""" ) shouldBe "-261082718496449122051/13530"
+		capture( """=:B->1/.`+=>->1/.`+=>->1*^~1%1*/!\%%1%1!%1/^%1%%%1+1%%1$..0%1$..0%1$ .@B40""" ) shouldBe "-261082718496449122051/13530"
 		Gerbil.run( """@`(-1 5""" ) shouldBe -4
 		capture( "(:..1 3;._1)" ) shouldBe "1\n2\n3"
 		Gerbil.run( "/:`+3,1,2,3;" ) shouldBe 9
 		Gerbil.run( """@->3%:$1 2 3""" ) shouldBe List( 1, 2, 3 )
+		capture( ".++1i3+2i4" ) shouldBe "3+7i"
+		Gerbil.run( "=:a3 ,+:a,a;" ) shouldBe List(3, 4)
+		Gerbil.run( "=:a3 ,+.a,a;" ) shouldBe List(4, 4)
+		Gerbil.run( "=:a3 ,-:a,a;" ) shouldBe List(3, 2)
+		Gerbil.run( "=:a3 ,-.a,a;" ) shouldBe List(2, 2)
 	}
 	
 }

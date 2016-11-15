@@ -6,6 +6,7 @@ import collection.mutable.{ArrayBuffer, HashMap, ArrayStack}
 
 import xyz.hyperreal.rtcep.{Operator => _, _}
 import xyz.hyperreal.lia.{FunctionMap, Math}
+import xyz.hyperreal.numbers.ComplexBigInt
 
 
 object Gerbil {
@@ -23,6 +24,7 @@ object Gerbil {
 						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_"
 					)
 				} )
+			add( new ReservedLexeme("i", "sqrt") )
 			add( new FloatingLexeme('float) )
 			add( new IntegerLexeme('integer, Set()) )
 			add( new NameLexeme('ident) )
@@ -33,6 +35,8 @@ object Gerbil {
 	
 	def operator( kind: Any, op: (String, ArrayBuffer[Instruction], ArrayStack[Control]) => Operator ) = operators(kind) = op
 	
+	operator( 'i, (_, _, _) => env => Some( Math('*, ComplexBigInt.i, env.evalo) ) )
+	operator( 'sqrt, (_, _, _) => env => Some( Math.sqrtFunction(env.evalo) ) )
 	operator( '+',
 		(_, _, _) => env =>
 			Some( env.evalo match {
@@ -61,7 +65,7 @@ object Gerbil {
 						Math( '-, l, r )
 				} )
 		)
-	operator( Symbol("-."),
+	operator( '~',
 		(_, _, _) => env =>
 			Some( env.evalo match {
 				case s: Seq[Any] => for (e <- s) yield Math( '-, e )
@@ -114,7 +118,7 @@ object Gerbil {
 			v.value = Math( '+, v.value, 1 )
 			Some( v.value )
 		} )
-	operator( '~, (_, _, _) =>
+	operator( Symbol("-."), (_, _, _) =>
 		env => {
 			val v = env.evalv
 			
