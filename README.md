@@ -62,7 +62,7 @@ Nil        | the Scala list terminator
 N/A        | the column is not applicable to the symbol
            | a blank in the 'input' column just means no input, but is not the same as N/A because the symbol is considered to be a normal operator
 \<inputs\> | inputs, if any, to a function or operator that's being called indirectly
-\<output>\ | output to a function or operator that's being called indirectly
+\<output>  | output to a function or operator that's being called indirectly
 \<symbol>  | string of symbol (non-alphanumeric and non-space) characters
 
 The following table explains the built-in operator symbols. Some of the operators have multiple meanings depending of the type of arguments they are presented with, so the same operator can appear more than once with different meanings. In the 'example' and 'result' columns, assume variable `a` is equal to 5.
