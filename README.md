@@ -113,3 +113,6 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `>`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *n*<sub>1</sub>&nbsp;>&nbsp;*n*<sub>2</sub> | greater than | see `?` example | see `?` example
 `<=`         | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *n*<sub>1</sub>&nbsp;<=&nbsp;*n*<sub>2</sub> | less than or equal | see `?` example | see `?` example
 `>=`         | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *n*<sub>1</sub>&nbsp;>=&nbsp;*n*<sub>2</sub> | greater than or equal | see `?` example | see `?` example
+`=`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *n*<sub>1</sub>&nbsp;=&nbsp;*n*<sub>2</sub> | equal | `=a5` | true
+`+|`         |                | true                   | boolean literal    | `+|`                   | true
+`-|`         |                | false                  | boolean literal    | `-|`                   | false

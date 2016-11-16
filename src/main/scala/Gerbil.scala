@@ -21,7 +21,8 @@ object Gerbil {
 						"->", "%", "%:", "%.", "%%", "%%%", "$", "?", ":", "?.",
 						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
 						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
-						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "><"
+						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "><",
+						"[", "]", "{", "}"
 					)
 				} )
 			add( new ReservedLexeme("i", "sqrt") )
@@ -475,6 +476,21 @@ object Gerbil {
 			
 			f( new OperatorEnv(List(r, l), env) )
 		} )
+	operator( '[',
+		(_, _, _) => env => {
+			val array = new ArrayBuffer[Any]
+			
+			while (env.ip < env.inst.length && env.inst(env.ip).tok.kind != ']')
+				array += env.evalo
+				
+			if (env.ip == env.inst.length)
+				env.inst(env.ip - 1).tok.rest.head.pos.error( "expected ']'" )
+				
+			env.ip += 1
+			Some( array )
+		} )
+	operator( ']',
+		(t, _, _) => env => t.pos.error( "unclosed array" ))
 	
 	def compile( r: Reader ) = {
 		val code = new ArrayBuffer[Instruction]
