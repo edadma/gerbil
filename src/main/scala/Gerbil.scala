@@ -21,7 +21,7 @@ object Gerbil {
 						"->", "%", "%:", "%.", "%%", "%%%", "$", "?", ":", "?.",
 						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
 						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
-						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "><",
+						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "__", "><",
 						"[", "]", "{", "}"
 					)
 				} )
@@ -220,7 +220,7 @@ object Gerbil {
 				case _ => t.pos.error( "not inside a conditional" )
 			}
 			
-			t.pos.error( "unclosed conditional" )
+			_ => t.pos.error( "unclosed conditional" )
 		} )
 	operator( Symbol("?."),
 		(t, code, control) => {
@@ -353,6 +353,7 @@ object Gerbil {
 								top.cur = Some( top.iter.next )
 								env.execute(cur)
 							} else {
+								env.stack.top.loops.pop
 								env.ip = cur + 1
 								Some( () )
 							}
@@ -467,7 +468,16 @@ object Gerbil {
 			Some( s map (x => f(new OperatorEnv(List(x), env)).get) )
 		} )
 	operator( Symbol("()"), (_, _, _) => env => Some( () ) )
-	operator( '_', (_, _, _) => env => env.stack.top.loops( env.evali - 1 ).cur )
+	operator( '_', (t, _, _) => env =>
+		if (env.stack.top.loops.isEmpty)
+			t.pos.error( "not inside a loop" )
+		else
+			env.stack.top.loops.top.cur )
+	operator( '__, (t, _, _) => env =>
+		if (env.stack.top.loops.length < 2)
+			t.pos.error( "not inside a nested loop" )
+		else
+			env.stack.top.loops(1).cur )
 	operator( '><,
 		(_, _, _) => env => {
 			val f = env.evalf

@@ -41,7 +41,7 @@ class Tests extends FreeSpec with PropertyChecks with Matchers {
 		Gerbil.run( "^4 /1 2" ) shouldBe 2.0
 		capture( """=:B->1;/.`+=>->1;/.`+=>->1;*^~1%1*/!\%%1%1!%1/^%1%%%1+1%%1$..0%1$..0%1$ .@B40""" ) shouldBe "-261082718496449122051/13530"
 		Gerbil.run( """@`(-1 5""" ) shouldBe -4
-		capture( "(:..1 3;._1)" ) shouldBe "1\n2\n3"
+		capture( "(:..1 3;._)" ) shouldBe "1\n2\n3"
 		Gerbil.run( "/:`+3,1,2,3;" ) shouldBe 9
 		Gerbil.run( """@->3;%:$1 2 3""" ) shouldBe List( 1, 2, 3 )
 		capture( ".++1i3+2i4" ) shouldBe "3+7i"
@@ -50,6 +50,7 @@ class Tests extends FreeSpec with PropertyChecks with Matchers {
 		Gerbil.run( "=:a3 ,-:a,a;" ) shouldBe List(3, 2)
 		Gerbil.run( "=:a3 ,-.a,a;" ) shouldBe List(2, 2)
 		Gerbil.run( """=:flip ->1; ->2,%1;@%.1%2%1$ $ /:@flip`,;,1,2,3;""" ) shouldBe List( 3, 2, 1 )
+		capture( """(:..1 3 (:..1 3 .:*_ __ .:" ")."")""" ) shouldBe "1 2 3 \n2 4 6 \n3 6 9"
 	}
 	
 }

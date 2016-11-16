@@ -116,3 +116,4 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `=`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *n*<sub>1</sub>&nbsp;=&nbsp;*n*<sub>2</sub> | equal | `=a5` | true
 `+|`         |                | true                   | boolean literal    | `+|`                   | true
 `-|`         |                | false                  | boolean literal    | `-|`                   | false
+`..`         | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | sequence from *n*<sub>1</sub> to *n*<sub>2</sub> | integer range | (:..1 3._) | prints numbers from 1 to 3
