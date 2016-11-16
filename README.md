@@ -109,4 +109,4 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `\:`         | *f*/2 *s*      | *s* folded using *f*/2 | right fold         | ``\:`-3,1,2,3;``       | -1
 `i`          | *n*            | *n**i*                 | imaginary number   | `i +1i1`               | -1+i
 `sqrt`       | *n*            | square root of *n*     | square root        | `sqrt i1`; `sqrt 4`    | 0.707106781+0.707106781i; 2 (as an integer)
-`<`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *<sub>1</sub>&nbsp;<&nbsp;*n*<sub>2</sub> | less then | see `?` example | see `?` example
+`<`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *n*<sub>1</sub>&nbsp;<&nbsp;*n*<sub>2</sub> | less then | see `?` example | see `?` example
