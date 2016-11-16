@@ -51,6 +51,7 @@ class Tests extends FreeSpec with PropertyChecks with Matchers {
 		Gerbil.run( "=:a3 ,-.a,a;" ) shouldBe List(2, 2)
 		Gerbil.run( """=:flip ->1; ->2,%1;@%.1%2%1$ $ /:@flip`,;,1,2,3;""" ) shouldBe List( 3, 2, 1 )
 		capture( """(:..1 3 (:..1 3 .:*_ __ .:" ")."")""" ) shouldBe "1 2 3 \n2 4 6 \n3 6 9"
+		capture( "=:s{1 2 3 4 5} .<-0s .<-3s" ) shouldBe "false\ntrue"
 	}
 	
 }

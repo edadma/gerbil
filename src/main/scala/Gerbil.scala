@@ -2,7 +2,7 @@ package xyz.hyperreal.gerbil
 
 import java.io.{StringReader, Reader}
 
-import collection.mutable.{ArrayBuffer, HashMap, ArrayStack}
+import collection.mutable.{ArrayBuffer, HashSet, HashMap, ArrayStack}
 
 import xyz.hyperreal.rtcep.{Operator => _, _}
 import xyz.hyperreal.lia.{FunctionMap, Math}
@@ -22,7 +22,7 @@ object Gerbil {
 						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
 						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
 						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "__", "><",
-						"[", "]", "{", "}"
+						"[", "]", "{", "}", "<-"
 					)
 				} )
 			add( new ReservedLexeme("i", "sqrt") )
@@ -130,7 +130,7 @@ object Gerbil {
 	operator( Symbol(".:"), (_, _, _) => env => Some( print(env.evalo) ) )
 	operator( ',', (_, _, _) => env => Some( env.evalo :: env.evall ) )
 	operator( ';', (_, _, _) => env => Some( Nil ) )
-	operator( '#', (_, _, _) => env => Some( env.evals.length ) )
+	operator( '#', (_, _, _) => env => Some( env.evalit.size ) )
 	operator( '->,
 		(_, _, _) => env => {
 			val argc = env.evali
@@ -345,7 +345,7 @@ object Gerbil {
 					code(start) = new Instruction( code(start).tok,
 						env => {
 							if (env.stack.top.loops.isEmpty || env.stack.top.loops.top.start != start)
-								env.stack.top.loops.push( ForControl(start, env.evals.iterator) )
+								env.stack.top.loops.push( ForControl(start, env.evalit.iterator) )
 							
 							val top = env.stack.top.loops.top
 							
@@ -405,14 +405,14 @@ object Gerbil {
 		env => {
 			val f = env.evalf
 			val z = env.evalo
-			val s = env.evals
+			val s = env.evalit
 			
 			Some( s.foldLeft(z)((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
 		} )
 	operator( Symbol("/."), (_, _, _) =>
 		env => {
 			val f = env.evalf
-			val s = env.evals
+			val s = env.evalit
 			
 			Some( s.reduceLeft((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
 		} )
@@ -420,14 +420,14 @@ object Gerbil {
 		env => {
 			val f = env.evalf
 			val z = env.evalo
-			val s = env.evals
+			val s = env.evalit
 			
 			Some( s.foldRight(z)((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
 		} )
 	operator( Symbol("\\."), (_, _, _) =>
 		env => {
 			val f = env.evalf
-			val s = env.evals
+			val s = env.evalit
 			
 			Some( s.reduceRight((x, y) => f(new OperatorEnv(List(x, y), env)).get) )
 		} )
@@ -463,7 +463,7 @@ object Gerbil {
 	operator( '=>, (_, _, _) =>
 		env => {
 			val f = env.evalf
-			val s = env.evals
+			val s = env.evalit
 
 			Some( s map (x => f(new OperatorEnv(List(x), env)).get) )
 		} )
@@ -500,7 +500,35 @@ object Gerbil {
 			Some( array )
 		} )
 	operator( ']',
-		(t, _, _) => env => t.pos.error( "unclosed array" ))
+		(t, _, _) => env => t.pos.error( "not inside an array" ) )
+	operator( '{',
+		(_, _, _) => env => {
+			val array = new HashSet[Any]
+			
+			while (env.ip < env.inst.length && env.inst(env.ip).tok.kind != '}')
+				array += env.evalo
+				
+			if (env.ip == env.inst.length)
+				env.inst(env.ip - 1).tok.rest.head.pos.error( "expected '}'" )
+				
+			env.ip += 1
+			Some( array )
+		} )
+	operator( '}',
+		(t, _, _) => env => t.pos.error( "not inside a set" ) )
+	operator( '<-,
+		(_, _, _) => env => {
+			val e = env.evalo
+			val cur = env.ip
+			
+			Some( env.evalo match {
+				case s: String => s contains e
+				case l: Seq[Any] => l contains e
+				case c: collection.Set[Any] => c contains e
+				case m: collection.Map[Any, Any] => m contains e
+				case _ => env.inst(cur).tok.pos.error( "expected a string or iterable" )
+			} )
+		} )
 	
 	def compile( r: Reader ) = {
 		val code = new ArrayBuffer[Instruction]
@@ -618,11 +646,25 @@ class Env( val inst: IndexedSeq[Instruction] ) {
 		
 	def evall = evalo.asInstanceOf[List[Any]]	
 		
-	def evals =
+	def evals = {
+		val cur = inst(ip)
+		
 		evalo match {
 			case l: Seq[Any] => l
 			case s: String => s.toList
+			case v => cur.tok.pos.error( "sequence was expected" )
 		}
+	}
+	
+	def evalit = {
+		val cur = inst(ip)
+		
+		evalo match {
+			case l: Iterable[Any] => l
+			case s: String => s.toList
+			case v => cur.tok.pos.error( "iterable was expected" )
+		}
+	}
 	
 	def evala = evald
 	
