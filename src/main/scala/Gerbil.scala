@@ -18,7 +18,7 @@ object Gerbil {
 			add(
 				new SymbolLexeme( 'symbol, Nil ) {
 					add( "+", "-", "~", "*", "/", "^", ".", ".:", "=:", "+:", "-:", "+.", "-.", "@", ",", ";", "#",
-						"->", "%", "%:", "%%", "%%%", "$", "?", ":", "?.",
+						"->", "%", "%:", "%.", "%%", "%%%", "$", "?", ":", "?.",
 						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
 						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
 						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_"
@@ -133,28 +133,28 @@ object Gerbil {
 	operator( '->,
 		(_, _, _) => env => {
 			val argc = env.evali
+			val scope = env.evals map Some.apply toVector
 			val start = env.ip
 			var depth = 0
 			
-			def scan {
-				if (env.inst(env.ip).inst != '$') {
+			def scan: Unit =
+				if (env.inst(env.ip).inst == '$') {
 					env.ip +=1
-
-					if (env.inst(env.ip).inst == '->)
-						depth += 1
-						
-					scan
-				} else
+					
 					if (depth > 0) {
-						env.ip +=1
 						depth -= 1
 						scan
 					}
-			}
-			
+				} else {
+					if (env.inst(env.ip).inst == '->)
+						depth += 1
+						
+					env.ip +=1
+					scan
+				}
+
 			scan
-			env.ip += 1
-			Some( new Function( start, argc ) )
+			Some( new Function( start, argc, scope ) )
 		} )
 	operator( '%', (_, _, _) =>
 		env => {
@@ -178,6 +178,7 @@ object Gerbil {
 			top.args(arg)
 		} )
 	operator( '%:, (_, _, _) => env => Some( env.stack.top.args map (_.get) toList ) )
+	operator( Symbol("%."), (_, _, _) => env => env.stack.top.scope( env.evali - 1 ) )
 	operator( '%%, (_, _, _) => env => env.stack( 1 ).args( env.evali - 1 ) )
 	operator( '%%%, (_, _, _) => env => env.stack( 2 ).args( env.evali - 1 ) )
 	operator( '$',
@@ -474,14 +475,16 @@ object Gerbil {
 			operators get t.kind match {
 				case None => sys.error( "unknown operator: " + t.kind )
 				case Some( op ) =>
+//				println( code.length, t )
 					code += new Instruction( t.kind, op(t.s, code, control) )
 			}
-		
+
+//			println( "-------" )
 		code
 	}
 	
 	def run( code: IndexedSeq[Instruction] ): Any = {
-		new Env( code ){stack.push( new Activation(0, null) )}.execute( code.length ).get
+		new Env( code ){stack.push( new Activation(-1, null, null) )}.execute( code.length ).get
 	}
 
 	def run( code: String ): Any = run( compile(new StringReader(code)) )
@@ -502,16 +505,16 @@ class Instruction( val inst: Any, action: Operator ) extends Operator {
 }
 
 // class Activation( var ret: Int, val args: ArrayBuffer[Option[Any]] = new ArrayBuffer )
-class Activation( val ret: Int, val args: IndexedSeq[Option[Any]], val loops: ArrayStack[ForControl] = new ArrayStack )
+class Activation( val ret: Int, val args: IndexedSeq[Option[Any]], val scope: Vector[Option[Any]], val loops: ArrayStack[ForControl] = new ArrayStack )
 
 case class ForControl( start: Int, iter: Iterator[Any], var cur: Option[Any] = null )
 
-class Function( val start: Int, val argc: Int )	extends Operator {
+class Function( val start: Int, val argc: Int, scope: Vector[Option[Any]] ) extends Operator {
 	def apply( env: Env ) = {
 		val args = (for (_ <- 1 to argc) yield env.evala) toIndexedSeq
 		val here = env.ip
 		
-		env.stack.push( new Activation(here, args) )
+		env.stack.push( new Activation(here, args, scope) )
 		env.ip = start
 		env.execute( here )
 	}

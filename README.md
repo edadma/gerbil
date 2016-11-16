@@ -20,12 +20,12 @@ Here are some examples of what the language looks like.
 	
 ### Example 2: The Factorial Function
 
-	=:fact->1/.`*..1%1$.@fact5
+	=:fact->1;/.`*..1%1$.@fact5
 	
 Here's the same example with spaces and comments added. Admittedly, this is not the complete definition because it's missing the fact (by definition) that 0! = 1.
 
 	=: fact        ## assign the function to variable 'fact'
-	  -> 1         ## define lambda function that takes 1 argument
+	  -> 1;        ## define lambda function that takes 1 argument and no scope arguments
 	    /.         ## reduce a sequence to a single value by applying an operator to each element
 	      `*       ## the multiplication operator as an object (section) to be used by reduce (/.)
 	      ..1 %1   ## sequence of integers from 1 to whatever the argument is
@@ -109,3 +109,4 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `\:`         | *f*/2 *s*      | *s* folded using *f*/2 | right fold         | ``\:`-3,1,2,3;``       | -1
 `i`          | *n*            | *n**i*                 | imaginary number   | `i +1i1`               | -1+i
 `sqrt`       | *n*            | square root of *n*     | square root        | `sqrt i1`; `sqrt 4`    | 0.707106781+0.707106781i; 2 (as an integer)
+`<`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | true if *<sub>1</sub>&nbsp;<&nbsp;*n*<sub>2</sub> | less then | see `?` example | see `?` example
