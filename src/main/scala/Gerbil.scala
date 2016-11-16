@@ -21,7 +21,7 @@ object Gerbil {
 						"->", "%", "%:", "%.", "%%", "%%%", "$", "?", ":", "?.",
 						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
 						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
-						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_"
+						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "><"
 					)
 				} )
 			add( new ReservedLexeme("i", "sqrt") )
@@ -466,6 +466,14 @@ object Gerbil {
 		} )
 	operator( Symbol("()"), (_, _, _) => env => Some( () ) )
 	operator( '_', (_, _, _) => env => env.stack.top.loops( env.evali - 1 ).cur )
+	operator( '><,
+		(_, _, _) => env => {
+			val f = env.evalf
+			val l = env.evalo
+			val r = env.evalo
+			
+			f( new OperatorEnv(List(r, l), env) )
+		} )
 	
 	def compile( r: Reader ) = {
 		val code = new ArrayBuffer[Instruction]
@@ -473,7 +481,7 @@ object Gerbil {
 		
 		for (t <- l.scan( r, 4 ) if !t.end)
 			operators get t.kind match {
-				case None => sys.error( "unknown operator: " + t.kind )
+				case None => sys.error( "unknown operator: " + t )
 				case Some( op ) =>
 //				println( code.length, t )
 					code += new Instruction( t.kind, op(t.s, code, control) )
