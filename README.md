@@ -1,4 +1,4 @@
-![alt text](https://github.com/edadma/gerbil/blob/master/logo5-200.jpg)
+![alt text](https://github.com/edadma/gerbil/blob/master/banner1.jpg)
 
 The Gerbil Programming Language
 ===============================
