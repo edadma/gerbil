@@ -187,7 +187,19 @@ object Gerbil {
 			env.ip = env.stack.pop.ret
 			env.last
 		} )
-	operator( '@', (_, _, _) => env => env.evalf( env ) )
+	operator( '@',
+		(_, _, _) => env => {
+			val cur = env.ip
+			
+			env.evalo match {
+				case s: String => Some( s( env.evali ) )
+				case l: Seq[Any] => Some( l( env.evali ) )
+				case c: collection.Set[Any] => Some( c( env.evalo ) )
+				case m: collection.Map[Any, Any] => Some( m( env.evalo ) )
+				case o: Operator => o( env )
+				case _ => env.inst(cur).tok.pos.error( "expected a string, iterable, map or function" )
+			}
+		} )
 	operator( 'integer, (t, _, _) => {val n = t.s.toInt; env => Some( n )} )
 	operator( 'float, (t, _, _) => {val n = t.s.toDouble; env => Some( n )} )
 	operator( 'string, (t, _, _) => env => Some( t.s ) )

@@ -118,6 +118,8 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `-|`         |                | false                  | boolean literal    | `-|`                   | false
 `..`         | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | sequence from *n*<sub>1</sub> to *n*<sub>2</sub> | integer range | `(:..1 3._)` | () (with the side effect of printing numbers from 1 to 3
 `&`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> bitwise and *n*<sub>2</sub> | bitwise and | `&5 3` | 1
-`&`          | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *n*<sub>1</sub> and *n*<sub>2</sub> | boolean and | `&>a0<a10` | true ('a' is between 0 and 10)
+`&`          | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *b*<sub>1</sub> and *b*<sub>2</sub> | boolean and | `&>a0<a10` | true ('a' is between 0 and 10)
 `|`          | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> bitwise or *n*<sub>2</sub> | bitwise or | `|5 3` | 7
-`|`          | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *n*<sub>1</sub> or *n*<sub>2</sub> | boolean or | `|<a0>a10` | false ('a' is not outside the interval [0,10])
+`|`          | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *b*<sub>1</sub> or *b*<sub>2</sub> | boolean or | `|<a0>a10` | false ('a' is not outside the interval [0,10])
+`|:`         | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> bitwise xor *n*<sub>2</sub> | bitwise xor | `|:5 3` | 6
+`|:`         | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *b*<sub>1</sub> xor *b*<sub>2</sub> | boolean xor | `|:+|+|` | false
