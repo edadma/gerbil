@@ -31,9 +31,9 @@ object Gerbil {
 			ignore( WhitespaceLexeme )
 			add( EOFLexeme )
 		}
-	val operators = new HashMap[Any, (String, ArrayBuffer[Instruction], ArrayStack[Control]) => Operator]
+	val operators = new HashMap[Any, (Token, ArrayBuffer[Instruction], ArrayStack[Control]) => Operator]
 	
-	def operator( kind: Any, op: (String, ArrayBuffer[Instruction], ArrayStack[Control]) => Operator ) = operators(kind) = op
+	def operator( kind: Any, op: (Token, ArrayBuffer[Instruction], ArrayStack[Control]) => Operator ) = operators(kind) = op
 	
 	operator( 'i, (_, _, _) => env => Some( Math('*, ComplexBigInt.i, env.evalo) ) )
 	operator( 'sqrt, (_, _, _) => env => Some( Math.sqrtFunction(env.evalo) ) )
@@ -138,7 +138,7 @@ object Gerbil {
 			var depth = 0
 			
 			def scan: Unit =
-				if (env.inst(env.ip).inst == '$') {
+				if (env.inst(env.ip).tok.kind == '$') {
 					env.ip +=1
 					
 					if (depth > 0) {
@@ -146,7 +146,7 @@ object Gerbil {
 						scan
 					}
 				} else {
-					if (env.inst(env.ip).inst == '->)
+					if (env.inst(env.ip).tok.kind == '->)
 						depth += 1
 						
 					env.ip +=1
@@ -187,17 +187,17 @@ object Gerbil {
 			env.last
 		} )
 	operator( '@', (_, _, _) => env => env.evalf( env ) )
-	operator( 'integer, (s, _, _) => {val n = s.toInt; env => Some( n )} )
-	operator( 'float, (s, _, _) => {val n = s.toDouble; env => Some( n )} )
-	operator( 'string, (s, _, _) => env => Some( s ) )
+	operator( 'integer, (t, _, _) => {val n = t.s.toInt; env => Some( n )} )
+	operator( 'float, (t, _, _) => {val n = t.s.toDouble; env => Some( n )} )
+	operator( 'string, (t, _, _) => env => Some( t.s ) )
 	operator( 'ident,
-		(s, _, _) => env =>
-			Some( env.vars get s match {
+		(t, _, _) => env =>
+			Some( env.vars get t.s match {
 				case Some( v: Variable ) => v
 				case None =>
 					val v = new Variable
 					
-					env.vars( s ) = v
+					env.vars( t.s ) = v
 					v
 			} )
 		)
@@ -207,28 +207,28 @@ object Gerbil {
 	operator( '>', (_, _, _) => env => Some( Math('>, env.evalo, env.evalo) ) )
 	operator( '>=, (_, _, _) => env => Some( Math('>=, env.evalo, env.evalo) ) )
 	operator( '?',
-		(_, code, control) => {
+		(t, code, control) => {
 			control.push( Conditional(code.length) )
-			null
+			_ => t.pos.error( "unclosed conditional" )
 		} )
 	operator( ':',
-		(_, code, control) => {
+		(t, code, control) => {
 			control.top match {
 				case c@Conditional( trueIndex, _ ) =>
 					c.falseIndex = code.length
-				case _ => sys.error( "not inside conditional" )
+				case _ => t.pos.error( "not inside a conditional" )
 			}
 			
-			null
+			t.pos.error( "unclosed conditional" )
 		} )
 	operator( Symbol("?."),
-		(_, code, control) => {
+		(t, code, control) => {
 			val cur = code.length
 			
 			control.pop match {
 				case Conditional( trueIndex, -1 ) =>
 					code(trueIndex) = 
-						new Instruction( '?',
+						new Instruction( code(trueIndex).tok,
 							env => {
 								if (env.evalb) {
 									val res = env.execute( cur )
@@ -243,7 +243,7 @@ object Gerbil {
 							} )
 				case Conditional( trueIndex, falseIndex ) =>
 					code(trueIndex) = 
-						new Instruction( '?',
+						new Instruction( code(trueIndex).tok,
 							env => {
 								if (env.evalb) {
 									val res = env.execute( falseIndex )
@@ -260,7 +260,7 @@ object Gerbil {
 									res
 								}
 							} )
-				case _ => sys.error( "not inside conditional" )
+				case _ => t.pos.error( "not inside a conditional" )
 			}
 			
 			null
@@ -305,27 +305,27 @@ object Gerbil {
 			} )
 		)
 	operator( '(',
-		(_, code, control) => {
+		(t, code, control) => {
 // 			evalo( env ) match {
 // 				case t: TraversableOnce[Any] =>
 // 				case s: String => 
 // 			}
 			control.push( SimpleLoop(code.length) )
-			null
+			_ => t.pos.error( "unclosed loop" )
 		} )
 	operator( Symbol("(:"),
-		(_, code, control) => {
+		(t, code, control) => {
 			control.push( ForLoop(code.length) )
-			null
+			_ => t.pos.error( "unclosed loop" )
 		} )
 	operator( ')',
-		(_, code, control) => {
+		(t, code, control) => {
 			val cur = code.length
 
 			def processExits( exits: Seq[Int] ) {
 				for (e <- exits)
 					code(e) =
-						new Instruction( '^:,
+						new Instruction( code(e).tok,
 							env => {
 								if (env.evalb) {
 									env.ip = cur + 1
@@ -337,11 +337,11 @@ object Gerbil {
 			
 			control.pop match {
 				case SimpleLoop( start, exits ) =>
-					code(start) = new Instruction( '(', env => env.execute(cur) )
+					code(start) = new Instruction( code(start).tok, env => env.execute(cur) )
 					processExits( exits )
 					env => Some( env.ip = start )
 				case ForLoop( start, exits ) =>
-					code(start) = new Instruction( Symbol("(:"),
+					code(start) = new Instruction( code(start).tok,
 						env => {
 							if (env.stack.top.loops.isEmpty || env.stack.top.loops.top.start != start)
 								env.stack.top.loops.push( ForControl(start, env.evals.iterator) )
@@ -358,14 +358,14 @@ object Gerbil {
 						} )
 					processExits( exits )
 					env => Some( env.ip = start )
-				case _ => sys.error( "not inside a loop" )
+				case _ => t.pos.error( "not inside a loop" )
 			}
 		} )
 	operator( '^:,
-		(_, code, control) => {
+		(t, code, control) => {
 			control.top match {
 				case SimpleLoop( _, exits ) => exits += code.length
-				case _ => sys.error( "not inside a loop" )
+				case _ => t.pos.error( "not inside a loop" )
 			}
 			
 			null
@@ -373,7 +373,7 @@ object Gerbil {
 	operator( '`', (_, _, _) =>
 		env => {
 			if (env.ip == env.inst.length)
-				sys.error( "operator was expected" )
+				env.inst(env.ip - 1).tok.rest.head.pos.error( "operator was expected" )
 			
 			val inst = env.inst(env.ip)
 		
@@ -383,7 +383,7 @@ object Gerbil {
 	operator( Symbol("`("), (_, _, _) =>
 		env => {
 			if (env.ip == env.inst.length)
-				sys.error( "operator was expected" )
+				env.inst(env.ip - 1).tok.rest.head.pos.error( "operator was expected" )
 			
 			val inst = env.inst(env.ip)
 			
@@ -441,10 +441,11 @@ object Gerbil {
 	
 	operator( '!', (_, _, _) =>
 		env => {
+			val cur = env.inst(env.ip)
 			val n = env.evali
 			
 			if (n < 0)
-				sys.error( "non-negative integer expected" )
+				cur.tok.pos.error( "non-negative integer expected" )
 			else if (n == 0 || n == 1)
 				Some( 1 )
 			else
@@ -479,12 +480,14 @@ object Gerbil {
 		val code = new ArrayBuffer[Instruction]
 		val control = new ArrayStack[Control]
 		
+		control push null	// so that .top is always valid
+		
 		for (t <- l.scan( r, 4 ) if !t.end)
 			operators get t.kind match {
-				case None => sys.error( "unknown operator: " + t )
+				case None => t.pos.error( "unknown operator" )
 				case Some( op ) =>
 //				println( code.length, t )
-					code += new Instruction( t.kind, op(t.s, code, control) )
+					code += new Instruction( t, op(t, code, control) )
 			}
 
 //			println( "-------" )
@@ -506,10 +509,10 @@ case class SimpleLoop( start: Int, exits: ArrayBuffer[Int] = new ArrayBuffer ) e
 
 case class ForLoop( start: Int, exits: ArrayBuffer[Int] = new ArrayBuffer ) extends Control
 
-class Instruction( val inst: Any, action: Operator ) extends Operator {
+class Instruction( val tok: Token, action: Operator ) extends Operator {
 	def apply( env: Env ) = action( env )
 	
-	override def toString = "<" + inst + ">"
+	override def toString = "<" + tok + ">"
 }
 
 // class Activation( var ret: Int, val args: ArrayBuffer[Option[Any]] = new ArrayBuffer )
@@ -548,7 +551,7 @@ class Env( val inst: IndexedSeq[Instruction] ) {
 	
 	def eval = {
 		if (ip == inst.length)
-			sys.error( "no more instructions" )
+			inst(inst.length - 1).tok.rest.head.pos.error( "expected more instructions" )
 			
 		val cur = ip
 		
@@ -557,11 +560,14 @@ class Env( val inst: IndexedSeq[Instruction] ) {
 		inst(cur)( this )
 	}
 	
-	def evalv: Variable =
+	def evalv: Variable = {
+		val cur = inst(ip)
+		
 		eval match {
 			case Some( v: Variable ) => v
-			case v => sys.error( "'" + v + "' is not a varialble" )
+			case _ => cur.tok.pos.error( "expected a varialble" )
 		}
+	}
 		
 	def evald: Option[Any] =
 		eval match {
@@ -569,12 +575,15 @@ class Env( val inst: IndexedSeq[Instruction] ) {
 			case v => v
 		}
 
-	def evalo =
+	def evalo = {
+		val cur = inst(ip)
+		
 		evald match {
 			case Some( o ) => o
-			case None => sys.error( "operand was expected" )
+			case None => cur.tok.pos.error( "operand was expected" )
 		}
-
+	}
+	
 	def evalf = evalo.asInstanceOf[Operator]
 
 	def evali = evalo.asInstanceOf[Int]
