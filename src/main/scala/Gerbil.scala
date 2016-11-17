@@ -207,14 +207,18 @@ object Gerbil {
 	operator( 'string, (t, _, _) => env => Some( t.s ) )
 	operator( 'ident,
 		(t, _, _) => env =>
-			Some( env.vars get t.s match {
-				case Some( v: Variable ) => v
+			env.defined get t.s match {
+				case Some( f ) => f( env )
 				case None =>
-					val v = new Variable
-					
-					env.vars( t.s ) = v
-					v
-			} )
+					Some( env.vars get t.s match {
+						case Some( v: Variable ) => v
+						case None =>
+							val v = new Variable
+							
+							env.vars( t.s ) = v
+							v
+					} )
+			}
 		)
 	operator( '<', (_, _, _) => env => Some( Math('<, env.evalo, env.evalo) ) )
 	operator( '<=, (_, _, _) => env => Some( Math('<=, env.evalo, env.evalo) ) )
@@ -547,21 +551,44 @@ object Gerbil {
 	operator( '=::, (_, _, _) =>
 		env => {
 			val cur = env.ip
-			val sym = env.evalstr
+			
+			if (cur == env.inst.length)
+				env.inst(cur - 1).tok.rest.head.pos.error( "operator name was expected" )
+			
+			val sym = env.inst(cur).tok match {
+				case Token( 'ident, s, _, _ ) => s
+				case Token( _, _, ch, _ ) => ch.head.pos.error( "unreserved operator name was expected" )
+			}
+		
+			env.ip += 1
+			
+// 			val cur = env.ip
+//			val sym = env.evalstr
 			val symbolic =
 				if (sym.matches( "[a-zA-Z]+" ))
 					false
-				else if (sym.isEmpty || sym.matches( """.*(?:\s|[0-9]).*""" ))
+				else if (sym.isEmpty || sym.matches( """.*(?:\s|[0-9a-zA-Z]).*""" ))
 					env.inst(cur).tok.pos.error( "expected a name (alpha only) or a symbol" )
 				else
 					true
 			val f = env.evalf
-			
-			if (symbolic)
-				symbols.add( sym )
+// 			if (symbolic)
+// 				symbols.add( sym )
+// 			else
+// 				reserved.add( sym )
 				
+//			operator( if (sym.length == 1) sym.head else Symbol(sym), (_, _, _) => f )
+
+			if (env.defined contains sym)
+				env.inst(cur).tok.pos.error( "operator already defined" )
+				
+			env.defined(sym) = f
 			Some( () )
 		} )
+// 	operator( 'symbol, (t, _, _) =>
+// 		env => {
+// 			Some( println( t.s ) )
+// 		} )
 
 	def compile( r: Reader ) = {
 		val code = new ArrayBuffer[Instruction]
@@ -640,6 +667,7 @@ class Env {
 	val vars = new HashMap[String, Variable]
 	val stack = new ArrayStack[Activation]
 	var last: Option[Any] = null
+	val defined = new HashMap[String, Operator]
 	
 	def ip = _ip
 	
@@ -652,7 +680,7 @@ class Env {
 		val cur = ip
 		
 		ip += 1
-//	println( cur, inst(cur) )
+//println( cur, inst(cur) )
 		inst(cur)( this )
 	}
 	
@@ -761,6 +789,7 @@ class OperatorEnv( operands: List[Any], exec: Env ) extends Env {
  	var cur = operands
  	override val vars = exec.vars
  	override val stack = exec.stack
+ 	override val defined = exec.defined
  	
  	inst = exec.inst
 	_ip = exec._ip	// don't know why keeping this line is necessary
