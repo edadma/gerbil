@@ -560,11 +560,19 @@ object Gerbil {
 		code
 	}
 	
-	def run( code: IndexedSeq[Instruction] ): Any = {
-		new Env( code ){stack.push( new Activation(-1, null, null) )}.execute( code.length ).get
+	def run( env: Env ): Any = {
+		env.stack.clear
+		env.ip = 0
+		env.stack push new Activation( -1, null, null )
+		env.execute( env.inst.length ).get
+	}
+	
+	def run( code: Reader, env: Env ): Any = {
+		env.inst = compile( code )
+		run( env )
 	}
 
-	def run( code: String ): Any = run( compile(new StringReader(code)) )
+	def run( code: String, env: Env = new Env ): Any = run( new StringReader(code), env )
 }
 
 trait Control
@@ -605,7 +613,8 @@ class Variable {
 	override def toString = "Var( " + value + " )"
 }
 
-class Env( val inst: IndexedSeq[Instruction] ) {
+class Env {
+	var inst: IndexedSeq[Instruction] = null
 	var _ip = 0
 	val vars = new HashMap[String, Variable]
 	val stack = new ArrayStack[Activation]
@@ -696,12 +705,13 @@ class Env( val inst: IndexedSeq[Instruction] ) {
 	}
 }
 
-class OperatorEnv( operands: List[Any], exec: Env ) extends Env( exec.inst ) {
+class OperatorEnv( operands: List[Any], exec: Env ) extends Env {
 	
  	var cur = operands
  	override val vars = exec.vars
  	override val stack = exec.stack
-
+ 	
+ 	inst = exec.inst
 	_ip = exec._ip	// don't know why keeping this line is necessary
 	
 	override def ip = exec._ip
