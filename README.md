@@ -123,4 +123,6 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `|`          | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *b*<sub>1</sub> or *b*<sub>2</sub> | boolean or | `|<a0>a10` | false ('a' is not outside the interval [0,10])
 `|:`         | *n*<sub>1</sub>&nbsp;*n*<sub>2</sub> | *n*<sub>1</sub> bitwise xor *n*<sub>2</sub> | bitwise xor | `|:5 3` | 6
 `|:`         | *b*<sub>1</sub>&nbsp;*b*<sub>2</sub> | *b*<sub>1</sub> xor *b*<sub>2</sub> | boolean xor | `|:+|+|` | false
+`~.`         | *n*            | negation of *n*        | bitwise negation   | `~.5`                  | -6
 `~.`         | *b*            | negation of *b*        | boolean negation   | `~.-|`                 | true
+`!`          | *i*            | *i* factorial          | factorial          | `!5`                   | 120

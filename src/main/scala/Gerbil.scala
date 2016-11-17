@@ -22,7 +22,7 @@ object Gerbil {
 						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
 						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
 						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "__", "><",
-						"[", "]", "{", "}", "<-"
+						"[", "]", "{", "}", "<-", "=="
 					)
 				} )
 			add( new ReservedLexeme("i", "sqrt") )
@@ -541,7 +541,8 @@ object Gerbil {
 				case _ => env.inst(cur).tok.pos.error( "expected a string or iterable" )
 			} )
 		} )
-	
+	operator( '==, (_, _, _) => env => env.evald )
+
 	def compile( r: Reader ) = {
 		val code = new ArrayBuffer[Instruction]
 		val control = new ArrayStack[Control]
