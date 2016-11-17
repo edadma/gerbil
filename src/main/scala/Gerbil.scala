@@ -411,13 +411,7 @@ object Gerbil {
 			
 			val l = env.evalo
 			
-			Some(
-				(env: Env) => {
-					val e = new OperatorEnv(List(l), env)
-					val res = inst( e )
-					
-					res
-				} )
+			Some( (env: Env) => inst( new OperatorEnv(List(l), env) ) )
 		} )
 	operator( '/:, (_, _, _) =>
 		env => {
