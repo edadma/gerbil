@@ -126,3 +126,4 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `~.`         | *n*            | negation of *n*        | bitwise negation   | `~.5`                  | -6
 `~.`         | *b*            | negation of *b*        | boolean negation   | `~.-|`                 | true
 `!`          | *i*            | *i* factorial          | factorial          | `!5`                   | 120
+`==`         | *e*            | *e*                    | identity operator  | `==a`                  | 5

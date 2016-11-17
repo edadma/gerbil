@@ -455,11 +455,11 @@ object Gerbil {
 	
 	operator( '!', (_, _, _) =>
 		env => {
-			val cur = env.inst(env.ip)
+			val cur = env.ip
 			val n = env.evali
 			
 			if (n < 0)
-				cur.tok.pos.error( "non-negative integer expected" )
+				env.inst(cur).tok.pos.error( "non-negative integer expected" )
 			else if (n == 0 || n == 1)
 				Some( 1 )
 			else
@@ -627,7 +627,7 @@ class Env {
 	
 	def eval = {
 		if (ip == inst.length)
-			inst(inst.length - 1).tok.rest.head.pos.error( "expected more instructions" )
+			inst(inst.length - 1).tok.rest.head.pos.error( "expected more operators" )
 			
 		val cur = ip
 		
@@ -637,11 +637,11 @@ class Env {
 	}
 	
 	def evalv: Variable = {
-		val cur = inst(ip)
+		val cur = ip
 		
 		eval match {
 			case Some( v: Variable ) => v
-			case _ => cur.tok.pos.error( "expected a varialble" )
+			case _ => inst(cur).tok.pos.error( "expected a varialble" )
 		}
 	}
 		
@@ -652,11 +652,11 @@ class Env {
 		}
 
 	def evalo = {
-		val cur = inst(ip)
+		val cur = ip
 		
 		evald match {
 			case Some( o ) => o
-			case None => cur.tok.pos.error( "operand was expected" )
+			case None => inst(cur).tok.pos.error( "operand was expected" )
 		}
 	}
 	
@@ -669,22 +669,22 @@ class Env {
 	def evall = evalo.asInstanceOf[List[Any]]	
 		
 	def evals = {
-		val cur = inst(ip)
+		val cur = ip
 		
 		evalo match {
 			case l: Seq[Any] => l
 			case s: String => s.toList
-			case v => cur.tok.pos.error( "sequence was expected" )
+			case v => inst(cur).tok.pos.error( "sequence was expected" )
 		}
 	}
 	
 	def evalit = {
-		val cur = inst(ip)
+		val cur = ip
 		
 		evalo match {
 			case l: Iterable[Any] => l
 			case s: String => s.toList
-			case v => cur.tok.pos.error( "iterable was expected" )
+			case v => inst(cur).tok.pos.error( "iterable was expected" )
 		}
 	}
 	
