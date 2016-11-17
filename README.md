@@ -127,4 +127,4 @@ Symbol       | Input(s)       | Output                 | Meaning            | Ex
 `~.`         | *b*            | negation of *b*        | boolean negation   | `~.-|`                 | true
 `!`          | *i*            | *i* factorial          | factorial          | `!5`                   | 120
 `==`         | *e*            | *e*                    | identity operator  | `==a`                  | 5
-`=::`        | \<alpha> *f*   | ()                     | define operator    | `=::inc`(+1 inc3`      | 4
+`=::`        | \<alpha> *f*   | ()                     | define operator    | ``=::inc`(+1 inc3``    | 4
