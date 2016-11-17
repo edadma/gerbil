@@ -11,21 +11,23 @@ import xyz.hyperreal.numbers.ComplexBigInt
 
 object Gerbil {
 	
+	val symbols =
+		new SymbolLexeme( 'symbol, Nil ) {
+			add( "+", "-", "~", "*", "/", "^", ".", ".:", "=:", "+:", "-:", "+.", "-.", "@", ",", ";", "#",
+				"->", "%", "%:", "%.", "%%", "%%%", "$", "?", ":", "?.",
+				"<", "<=", "=", ">", ">=", "+|", "-|", "..",
+				"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
+				"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "__", "><",
+				"[", "]", "{", "}", "<-", "==", "=::"
+			)
+		}
+	val reserved = new ReservedLexeme( "i", "sqrt" )
 	val l =
 		new Lexer {
 			add( new StringLexeme('string, '"') )
 			ignore( new LineCommentLexeme("##") )
-			add(
-				new SymbolLexeme( 'symbol, Nil ) {
-					add( "+", "-", "~", "*", "/", "^", ".", ".:", "=:", "+:", "-:", "+.", "-.", "@", ",", ";", "#",
-						"->", "%", "%:", "%.", "%%", "%%%", "$", "?", ":", "?.",
-						"<", "<=", "=", ">", ">=", "+|", "-|", "..",
-						"&", "|", "|:", "~.", "(", "(:", ")", "^:", "`", "`(", "`)",
-						"/:", "\\:", "/.", "\\.", "!", "!\\", "=>", "()", "_", "__", "><",
-						"[", "]", "{", "}", "<-", "=="
-					)
-				} )
-			add( new ReservedLexeme("i", "sqrt") )
+			add( symbols )
+			add( reserved )
 			add( new FloatingLexeme('float) )
 			add( new IntegerLexeme('integer, Set()) )
 			add( new NameLexeme('ident) )
@@ -542,6 +544,24 @@ object Gerbil {
 			} )
 		} )
 	operator( '==, (_, _, _) => env => env.evald )
+	operator( '=::, (_, _, _) =>
+		env => {
+			val cur = env.ip
+			val sym = env.evalstr
+			val symbolic =
+				if (sym.matches( "[a-zA-Z]+" ))
+					false
+				else if (sym.isEmpty || sym.matches( """.*(?:\s|[0-9]).*""" ))
+					env.inst(cur).tok.pos.error( "expected a name (alpha only) or a symbol" )
+				else
+					true
+			val f = env.evalf
+			
+			if (symbolic)
+				symbols.add( sym )
+				
+			Some( () )
+		} )
 
 	def compile( r: Reader ) = {
 		val code = new ArrayBuffer[Instruction]
@@ -660,11 +680,32 @@ class Env {
 		}
 	}
 	
-	def evalf = evalo.asInstanceOf[Operator]
-
-	def evali = evalo.asInstanceOf[Int]
+	def evalf = {
+		val cur = ip
 		
-	def evalb = evalo.asInstanceOf[Boolean]
+		evalo match {
+			case o: Operator => o
+			case _ => inst(cur).tok.pos.error( "operator (or function) was expected" )
+		}
+	}
+
+	def evali = {
+		val cur = ip
+		
+		evalo match {
+			case o: Int => o
+			case _ => inst(cur).tok.pos.error( "integer was expected" )
+		}
+	}
+		
+	def evalb = {
+		val cur = ip
+		
+		evalo match {
+			case o: Boolean => o
+			case _ => inst(cur).tok.pos.error( "boolean was expected" )
+		}
+	}
 		
 	def evall = evalo.asInstanceOf[List[Any]]	
 		
@@ -674,7 +715,16 @@ class Env {
 		evalo match {
 			case l: Seq[Any] => l
 			case s: String => s.toList
-			case v => inst(cur).tok.pos.error( "sequence was expected" )
+			case _ => inst(cur).tok.pos.error( "sequence was expected" )
+		}
+	}
+		
+	def evalstr = {
+		val cur = ip
+		
+		evalo match {
+			case s: String => s
+			case _ => inst(cur).tok.pos.error( "string was expected" )
 		}
 	}
 	
